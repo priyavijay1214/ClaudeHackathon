@@ -1,0 +1,15 @@
+/* Overlay window must be fully transparent */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: transparent !important;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  background: transparent;
+  width: 100vw;
+  height: 100vh;
+}
