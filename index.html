@@ -1,13 +1,225 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EchoConnect — Real-time Social Cue Overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#0a0a0f;color:#f0ede8;font-family:'DM Sans',system-ui,sans-serif;font-weight:300;line-height:1.75;overflow-x:hidden}
+:root{--accent:#4f6fff;--green:#00c896;--amber:#ffb700;--red:#ff4757;--paper:#f0ede8;--mono:'DM Mono',monospace;--serif:'DM Serif Display',Georgia,serif}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.25rem 4rem;border-bottom:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(12px);background:rgba(10,10,15,0.8)}
+.nav-logo{font-family:var(--serif);font-size:22px;color:var(--paper)}.nav-logo em{font-style:italic;color:var(--accent)}
+.nav-links{display:flex;gap:2rem;list-style:none}.nav-links a{color:rgba(240,237,232,0.5);text-decoration:none;font-size:13px;font-family:var(--mono);letter-spacing:0.06em;transition:color 0.2s}.nav-links a:hover{color:var(--paper)}
+.nav-cta{background:var(--accent);color:white;padding:8px 20px;border-radius:6px;font-size:13px;font-family:var(--mono);text-decoration:none;letter-spacing:0.06em}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:8rem 2rem 4rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(79,111,255,0.12) 0%,transparent 70%);pointer-events:none}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;color:var(--accent);text-transform:uppercase;margin-bottom:1.5rem;opacity:0;animation:fadeUp 0.8s 0.2s forwards}
+.hero-title{font-family:var(--serif);font-size:clamp(56px,9vw,112px);line-height:0.95;letter-spacing:-0.02em;color:var(--paper);margin-bottom:1.5rem;opacity:0;animation:fadeUp 0.8s 0.4s forwards}
+.hero-title em{font-style:italic;color:var(--accent)}
+.hero-sub{font-size:18px;font-weight:300;color:rgba(240,237,232,0.6);max-width:560px;margin:0 auto 2.5rem;line-height:1.65;opacity:0;animation:fadeUp 0.8s 0.6s forwards}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp 0.8s 0.8s forwards}
+.btn-primary{background:var(--accent);color:white;padding:14px 28px;border-radius:8px;font-size:14px;font-family:var(--mono);text-decoration:none;letter-spacing:0.06em}
+.btn-ghost{border:1px solid rgba(240,237,232,0.2);color:rgba(240,237,232,0.7);padding:14px 28px;border-radius:8px;font-size:14px;font-family:var(--mono);text-decoration:none;letter-spacing:0.06em}
+.nudge-demo{margin:4rem auto 0;opacity:0;animation:fadeUp 0.8s 1s forwards}
+.nudge-card{background:rgba(20,20,30,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:16px 20px;width:360px;position:relative;transition:opacity 0.3s,transform 0.3s}
+.nudge-tone{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.tone-dot{width:8px;height:8px;border-radius:50%;transition:background 0.3s}
+.tone-label{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:rgba(240,237,232,0.4)}
+.nudge-text{font-size:14px;color:var(--paper);line-height:1.5}
+.nudge-actions{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
+.nudge-btn{background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:10px;color:rgba(240,237,232,0.3);letter-spacing:0.06em;padding:2px 6px;border-radius:4px}
+.nudge-pulse{position:absolute;top:-5px;right:-5px;width:10px;height:10px;border-radius:50%;background:var(--green)}
+.nudge-pulse::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.stats{padding:4rem;display:flex;justify-content:center;gap:5rem;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06)}
+.stat-val{font-family:var(--serif);font-size:48px;color:var(--accent);line-height:1;text-align:center}
+.stat-label{font-size:11px;color:rgba(240,237,232,0.35);font-family:var(--mono);letter-spacing:0.08em;margin-top:6px;text-align:center}
+.section{padding:6rem 4rem;max-width:960px;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;color:var(--accent);text-transform:uppercase;margin-bottom:0.75rem}
+h2{font-family:var(--serif);font-size:clamp(34px,5vw,52px);font-weight:400;line-height:1.05;letter-spacing:-0.015em;color:var(--paper);margin-bottom:1.25rem}
+.lead{font-size:16px;color:rgba(240,237,232,0.55);max-width:580px;margin-bottom:2rem}
+.flow-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;margin-top:1.5rem}
+.flow-step{background:#0a0a0f;padding:1.5rem}.flow-step:hover{background:#0f0f18}
+.step-num{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:0.1em;margin-bottom:0.6rem}
+.step-title{font-size:13px;font-weight:500;color:var(--paper);margin-bottom:0.3rem}
+.step-desc{font-size:12px;color:rgba(240,237,232,0.35);line-height:1.5}
+.tones{display:flex;gap:10px;flex-wrap:wrap;margin-top:1.5rem}
+.tone-pill{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:100px;border:1px solid;font-size:12px;font-family:var(--mono)}
+.tone-pill .dot{width:7px;height:7px;border-radius:50%}
+.tp-blue{border-color:rgba(79,111,255,0.3);color:#8fa8ff;background:rgba(79,111,255,0.08)}.tp-blue .dot{background:var(--accent)}
+.tp-green{border-color:rgba(0,200,150,0.3);color:#4de8c2;background:rgba(0,200,150,0.08)}.tp-green .dot{background:var(--green)}
+.tp-amber{border-color:rgba(255,183,0,0.3);color:#ffd05c;background:rgba(255,183,0,0.08)}.tp-amber .dot{background:var(--amber)}
+.tp-red{border-color:rgba(255,71,87,0.3);color:#ff7a88;background:rgba(255,71,87,0.08)}.tp-red .dot{background:var(--red)}
+.tp-gray{border-color:rgba(240,237,232,0.12);color:rgba(240,237,232,0.35);background:rgba(240,237,232,0.04)}.tp-gray .dot{background:rgba(240,237,232,0.3)}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;margin-top:1.5rem}
+.feature{background:#0a0a0f;padding:1.5rem}.feature:hover{background:#0f0f18}
+.feature-icon{font-size:18px;margin-bottom:0.6rem}
+.feature-name{font-size:13px;font-weight:500;color:var(--paper);margin-bottom:0.3rem}
+.feature-desc{font-size:12px;color:rgba(240,237,232,0.35);line-height:1.5}
+.privacy-box{background:rgba(0,200,150,0.04);border:1px solid rgba(0,200,150,0.18);border-radius:12px;padding:2rem;margin-top:1.5rem}
+.privacy-box h3{font-size:14px;font-weight:500;color:var(--green);margin-bottom:1rem;font-family:var(--mono);letter-spacing:0.08em;text-transform:uppercase}
+.privacy-items{display:flex;flex-direction:column;gap:10px}
+.privacy-item{display:flex;align-items:flex-start;gap:12px;font-size:14px;color:rgba(240,237,232,0.55)}
+.pcheck{width:16px;height:16px;border-radius:50%;background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:3px}
+.pcheck::after{content:'';width:5px;height:5px;border-radius:50%;background:var(--green)}
+.stories{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:1.5rem}
+.story{background:#0f0f18;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:1.5rem}
+.story-quote{font-size:14px;color:rgba(240,237,232,0.6);line-height:1.65;margin-bottom:1rem;font-style:italic}
+.story-name{font-size:11px;color:rgba(240,237,232,0.3);font-family:var(--mono)}
+.cta-section{padding:7rem 4rem;text-align:center;position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(79,111,255,0.1) 0%,transparent 70%);pointer-events:none}
+footer{border-top:1px solid rgba(255,255,255,0.06);padding:2rem 4rem;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px;color:rgba(240,237,232,0.25)}
+@media(max-width:640px){nav{padding:1rem 1.5rem}.nav-links{display:none}.section{padding:4rem 1.5rem}.stats{gap:2rem;padding:2.5rem 1.5rem}.cta-section{padding:4rem 1.5rem}footer{padding:1.5rem;flex-direction:column;gap:8px;text-align:center}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Echo<em>Connect</em></div>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#privacy">Privacy</a></li>
+  </ul>
+  <a href="https://github.com/priyavijay1214/ClaudeHackathon" class="nav-cta">GitHub →</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">Neurodivergence Tech · Built with Claude</div>
+  <h1 class="hero-title">Echo<em>Connect</em></h1>
+  <p class="hero-sub">A privacy-first desktop overlay that gives neurodivergent individuals real-time social cue interpretation during video calls — powered by Claude's multimodal reasoning.</p>
+  <div class="hero-actions">
+    <a href="https://github.com/priyavijay1214/ClaudeHackathon" class="btn-primary">Get the app</a>
+    <a href="#how" class="btn-ghost">See how it works</a>
+  </div>
+  <div class="nudge-demo">
+    <div class="nudge-card" id="nudgeCard">
+      <div class="nudge-pulse"></div>
+      <div class="nudge-tone">
+        <div class="tone-dot" id="toneDot" style="background:#4f6fff"></div>
+        <span class="tone-label" id="toneLabel">CURIOUS</span>
+      </div>
+      <div class="nudge-text" id="nudgeText">Share a specific example from your last project</div>
+      <div class="nudge-actions">
+        <button class="nudge-btn">▾ why</button>
+        <button class="nudge-btn">pin</button>
+        <button class="nudge-btn">✕</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stats">
+  <div><div class="stat-val">1 in 36</div><div class="stat-label">children diagnosed ASD in US</div></div>
+  <div><div class="stat-val">70M+</div><div class="stat-label">adults on the spectrum globally</div></div>
+  <div><div class="stat-val">~80%</div><div class="stat-label">ASD adults struggle with interviews</div></div>
+  <div><div class="stat-val">0</div><div class="stat-label">real-time tools existed before this</div></div>
+</div>
+
+<div class="section" id="how">
+  <div class="eyebrow">How it works</div>
+  <h2>Subtitles for social subtext</h2>
+  <p class="lead">EchoConnect sits invisibly over your video call, reads the room every 4 seconds, and surfaces one calm nudge at a time.</p>
+  <div class="flow-steps">
+    <div class="flow-step"><div class="step-num">01</div><div class="step-title">Launch overlay</div><div class="step-desc">One click from menu bar. Selects active window.</div></div>
+    <div class="flow-step"><div class="step-num">02</div><div class="step-title">Silent capture</div><div class="step-desc">Screenshot every 4s. Only sent when content changes.</div></div>
+    <div class="flow-step"><div class="step-num">03</div><div class="step-title">Claude analyzes</div><div class="step-desc">Vision + structured reasoning. 1–2s latency target.</div></div>
+    <div class="flow-step"><div class="step-num">04</div><div class="step-title">Nudge appears</div><div class="step-desc">One calm sentence. Color-coded by tone.</div></div>
+    <div class="flow-step"><div class="step-num">05</div><div class="step-title">Auto-dismiss</div><div class="step-desc">Fades after 12s. Pin or expand to see reasoning.</div></div>
+  </div>
+  <div style="margin-top:3rem">
+    <div class="eyebrow">Tone system</div>
+    <p class="lead" style="margin-top:0.5rem;margin-bottom:0">Five tone categories — each with a distinct color for instant recognition.</p>
+    <div class="tones">
+      <div class="tone-pill tp-blue"><div class="dot"></div>Curious</div>
+      <div class="tone-pill tp-green"><div class="dot"></div>Warm</div>
+      <div class="tone-pill tp-amber"><div class="dot"></div>Disengaged</div>
+      <div class="tone-pill tp-red"><div class="dot"></div>Tense</div>
+      <div class="tone-pill tp-gray"><div class="dot"></div>Neutral</div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="features">
+  <div class="eyebrow">Features</div>
+  <h2>Built for real use, not demos</h2>
+  <div class="features">
+    <div class="feature"><div class="feature-icon">🧠</div><div class="feature-name">Claude Vision analysis</div><div class="feature-desc">Multimodal AI reads facial expressions, body language, and context in real time.</div></div>
+    <div class="feature"><div class="feature-icon">💬</div><div class="feature-name">Floating nudge overlay</div><div class="feature-desc">Always-on-top transparent window. Never blocks your call.</div></div>
+    <div class="feature"><div class="feature-icon">⚡</div><div class="feature-name">Change detection</div><div class="feature-desc">Pixel diff skips API calls when nothing meaningful has changed. Saves cost and latency.</div></div>
+    <div class="feature"><div class="feature-icon">🔕</div><div class="feature-name">Quiet mode</div><div class="feature-desc">Cmd+Shift+E to pause analysis instantly. No disruption when you need focus.</div></div>
+    <div class="feature"><div class="feature-icon">📍</div><div class="feature-name">Pin & expand</div><div class="feature-desc">Click any nudge to pin it and read Claude's full reasoning in 1–2 sentences.</div></div>
+    <div class="feature"><div class="feature-icon">🔒</div><div class="feature-name">Zero storage</div><div class="feature-desc">Screenshots sent to API and immediately discarded. Never written to disk.</div></div>
+  </div>
+</div>
+
+<div class="section" id="privacy">
+  <div class="eyebrow">Privacy</div>
+  <h2>Nothing is stored. Ever.</h2>
+  <p class="lead">For a tool built on trust, privacy isn't a feature — it's the foundation.</p>
+  <div class="privacy-box">
+    <h3>Privacy architecture</h3>
+    <div class="privacy-items">
+      <div class="privacy-item"><div class="pcheck"></div><span>Screenshots sent directly to Anthropic API and immediately discarded — never written to disk</span></div>
+      <div class="privacy-item"><div class="pcheck"></div><span>API key lives exclusively in the Electron main process — the UI never has access to it</span></div>
+      <div class="privacy-item"><div class="pcheck"></div><span>No audio is ever recorded or analyzed</span></div>
+      <div class="privacy-item"><div class="pcheck"></div><span>No account required — runs entirely on your machine with your own key</span></div>
+      <div class="privacy-item"><div class="pcheck"></div><span>Nudges below 60% confidence are suppressed — we'd rather say nothing than mislead</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="eyebrow">Who it's for</div>
+  <h2>Real people, real situations</h2>
+  <div class="stories">
+    <div class="story"><p class="story-quote">"I got passed over for 4 jobs. My technical skills are excellent. I just can't tell when the interviewer is losing interest."</p><div class="story-name">Alex, 27 · Software engineer with Asperger's</div></div>
+    <div class="story"><p class="story-quote">"I replay video sessions obsessively afterward trying to understand what my therapist's pauses meant. It's exhausting."</p><div class="story-name">Maya, 34 · Social anxiety</div></div>
+    <div class="story"><p class="story-quote">"I talk over people constantly on Zoom. I can't read the subtle cues that someone wants to speak."</p><div class="story-name">Jordan, 22 · College student with ADHD</div></div>
+  </div>
+</div>
+
+<div class="cta-section">
+  <div class="eyebrow" style="text-align:center;position:relative">Open source</div>
+  <h2 style="position:relative">Build it. Fork it. Improve it.</h2>
+  <p style="color:rgba(240,237,232,0.45);margin:0 auto 2rem;max-width:480px;position:relative">EchoConnect is open source and built for the community it serves. Bring your own API key and run it in minutes.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative">
+    <a href="https://github.com/priyavijay1214/ClaudeHackathon" class="btn-primary">View on GitHub →</a>
+  </div>
+</div>
+
+<footer>
+  <span>EchoConnect · Built at Hooked on Claude Hackathon · UT Austin 2026</span>
+  <span>Powered by Claude Vision API</span>
+</footer>
+
+<script>
+const nudges=[
+  {tone:'CURIOUS',color:'#4f6fff',text:'Share a specific example from your last project'},
+  {tone:'WARM',color:'#00c896',text:'Great rapport — keep the energy going'},
+  {tone:'DISENGAGED',color:'#ffb700',text:'Pause and ask if they have questions'},
+  {tone:'TENSE',color:'#ff4757',text:'Slow down — let them finish speaking first'},
+  {tone:'NEUTRAL',color:'rgba(240,237,232,0.3)',text:'No strong signal — continue naturally'},
+];
+let idx=0;
+setInterval(()=>{
+  idx=(idx+1)%nudges.length;
+  const n=nudges[idx];
+  const card=document.getElementById('nudgeCard');
+  card.style.opacity='0';
+  card.style.transform='translateY(8px)';
+  setTimeout(()=>{
+    document.getElementById('toneLabel').textContent=n.tone;
+    document.getElementById('toneDot').style.background=n.color;
+    document.getElementById('nudgeText').textContent=n.text;
+    card.style.opacity='1';
+    card.style.transform='translateY(0)';
+  },300);
+},3000);
+</script>
+</body>
 </html>
